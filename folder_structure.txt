@@ -1,0 +1,72 @@
+.
+├── .DS_Store
+├── .env
+├── .gitignore
+├── app.py
+├── folder_structure.txt
+├── github
+│   └── workflows
+│       └── .gitkeep
+├── init_setup.sh
+├── models
+│   ├── .DS_Store
+│   ├── document_term_matrix.joblib
+│   ├── lda_model.joblib
+│   ├── nmf_model.joblib
+│   └── vectorizer.joblib
+├── notebooks
+│   └── .DS_Store
+├── pipelines
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-311.pyc
+│   │   ├── processing_pipeline.cpython-311.pyc
+│   │   └── training_pipeline.cpython-311.pyc
+│   ├── prediction_pipeline.py
+│   ├── processing_pipeline.py
+│   └── training_pipeline.py
+├── requirements.txt
+├── scripts
+│   ├── run_pipeline.py
+│   └── setup_environment.sh
+├── setup.py
+├── src
+│   ├── RecipeRecommendationSystem
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   └── __init__.cpython-311.pyc
+│   │   ├── components
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── data_extraction.cpython-311.pyc
+│   │   │   │   ├── data_processing.cpython-311.pyc
+│   │   │   │   └── model_trainer.cpython-311.pyc
+│   │   │   ├── data_collection.py
+│   │   │   ├── data_extraction.py
+│   │   │   ├── data_processing.py
+│   │   │   ├── model_trainer.py
+│   │   │   └── recommendation.py
+│   │   ├── exception.py
+│   │   ├── logger.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       │   ├── __init__.cpython-311.pyc
+│   │       │   └── utils.cpython-311.pyc
+│   │       └── utils.py
+│   ├── __init__.py
+│   └── __pycache__
+│       └── __init__.cpython-311.pyc
+├── template.py
+├── templates
+│   └── index.html
+└── tests
+    ├── __init__.py
+    ├── test_data_collection.py
+    ├── test_data_extraction.py
+    ├── test_data_processing.py
+    ├── test_model_training.py
+    └── test_recommendation.py
+
+18 directories, 52 files

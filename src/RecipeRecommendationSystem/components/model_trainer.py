@@ -1,0 +1,43 @@
+import mlflow
+import mlflow.sklearn
+from sklearn.decomposition import LatentDirichletAllocation, NMF
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
+import pandas as pd
+import joblib
+from src.RecipeRecommendationSystem.utils.utils import save_model, load_model
+from bertopic import BERTopic
+
+
+class Trainer:
+    def generate_vectors(self, data, user):
+        print("Generating Vectors")
+        vectorizer_path = "vectorizer"
+        # Create a document-term matrix for ingredients and directions combined
+
+        if user == 0:
+            vectorizer = CountVectorizer(max_df=0.95, min_df=2, stop_words="english")
+            dtm = vectorizer.fit_transform(data["cleaned_text"])
+            save_model(vectorizer, vectorizer_path)
+        else:
+            vectorizer = load_model(vectorizer_path)
+            dtm = vectorizer.transform([data])
+        return dtm
+
+    def fit_models(self, dtm):
+        print("Fitting Models")
+        # Fit LDA model
+        lda = LatentDirichletAllocation(
+            n_components=100, random_state=42
+        )  # Adjust number of topics as needed
+        lda.fit(dtm)
+
+        # Fit NMF model
+        nmf = NMF(n_components=100, random_state=42)
+        nmf.fit(dtm)
+
+        # # BERTopic model
+        # bert = BERTopic()
+        # topics, probs = topic_model.fit_transform(docs)
+        return lda, nmf
