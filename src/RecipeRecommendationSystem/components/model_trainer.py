@@ -25,19 +25,31 @@ class Trainer:
             dtm = vectorizer.transform([data])
         return dtm
 
-    def fit_models(self, dtm):
-        print("Fitting Models")
-        # Fit LDA model
-        lda = LatentDirichletAllocation(
-            n_components=100, random_state=42
-        )  # Adjust number of topics as needed
-        lda.fit(dtm)
-
-        # Fit NMF model
-        nmf = NMF(n_components=100, random_state=42)
-        nmf.fit(dtm)
-
-        # # BERTopic model
-        # bert = BERTopic()
-        # topics, probs = topic_model.fit_transform(docs)
-        return lda, nmf
+    def fit_models(self, dtm, training_mode, data=None):
+        print("Fitting Model")
+        if training_mode == 0:
+            lda = LatentDirichletAllocation(n_components=100, random_state=42)
+            lda.fit(dtm)
+            return lda
+        elif training_mode == 1:
+            nmf = NMF(n_components=100, random_state=42)
+            nmf.fit(dtm)
+            return nmf
+        elif training_mode == 3:
+            topic_model = BERTopic()
+            texts = data["cleaned_text"].tolist()
+            topics, probs = topic_model.fit_transform(texts)
+            data["predicted_topic"] = topics
+            data["topic_probabilities"] = probs
+            return data, topic_model
+            # return bert
+        elif training_mode == 2:
+            lda = LatentDirichletAllocation(
+                n_components=100, random_state=42
+            )  # Adjust number of topics as needed
+            lda.fit(dtm)
+            nmf = NMF(n_components=100, random_state=42)
+            nmf.fit(dtm)
+            return lda, nmf
+        else:
+            print("Training mode error")

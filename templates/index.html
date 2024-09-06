@@ -15,7 +15,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             text-align: center;
             padding: 20px;
@@ -26,6 +26,37 @@
             margin-bottom: 20px;
             font-size: 1.8rem;
             color: #00d1b2;
+            text-align: center;
+            width: 100%;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .left, .right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .left {
+            flex: 1;
+        }
+
+        .right {
+            flex: 1;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         /* Button styling */
@@ -66,6 +97,50 @@
         input[type="text"]:focus {
             border-color: #00f5a0;
             outline: none;
+        }
+
+        /* Dropdown styling */
+        .select-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 320px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            width: 100%;
+            padding: 5px;
+            padding-right: 40px;
+            border: 1px solid #00d1b2;
+            border-radius: 5px;
+            background-color: #2c2c2c;
+            color: #f0f0f0;
+            font-size: 1rem;
+            appearance: none;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        select:focus {
+            border-color: #00f5a0;
+            box-shadow: 0 0 5px rgba(0, 245, 160, 0.5);
+        }
+
+        .select-wrapper::after {
+            content: '▼';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #f0f0f0;
+            font-size: 14px;
+        }
+
+        /* Suggest button styling */
+        .suggest-button {
+            margin-top: 20px;
         }
 
         /* Response container styling */
@@ -142,19 +217,46 @@
     </style>
 </head>
 <body>
-    <h1>Recipe Recommender System with Ensemble Topic Modelling (LDA and NMF)</h1>
-    
-    <!-- Initialize Model Button -->
-    <button id="initialize-model-btn">Initialize Model</button>
+    <h1>Recipe Recommender System with Ensemble Topic Modelling</h1>
+
+    <div class="container">
+        <!-- Left section with model buttons -->
+        <div class="left">
+            <div class="button-group">
+                <button id="view-data-btn">View Preprocessed Data</button>
+                <button id="lda-model-btn">Train with LDA (100 components)</button>
+                <button id="nmf-model-btn">Train with NMF (100 components)</button>
+                <button id="ensemble-model-btn">Ensemble Modelling (100 components)</button>
+                <button id="bert-model-btn">BERTopic</button>
+            </div>
+            <p id="training-warning" style="margin-top: 20px;">
+                Training can take a significant amount of time due to the sheer amount of data and free tier resource limitations. 
+                You should try a pretrained model from the dropdown.
+            </p>
+        </div>
+
+        <!-- Right section with form inputs -->
+        <div class="right">
+            <form action="/suggest-recipe" method="post" id="recipe-form">
+                <input type="text" name="ingredients" placeholder="What ingredients do you have?" required>
+
+                <div class="select-wrapper">
+                    <select name="model" required>
+                        <option value="" disabled selected>Test pre-trained model</option>
+                        <option value="lda">LDA</option>
+                        <option value="nmf">NMF</option>
+                        <option value="ensemble">Ensemble</option>
+                        <option value="bert">BERT</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="suggest-button">Suggest Recipes</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Loading Spinner -->
     <div id="loading-spinner" class="spinner"></div>
-
-    <!-- Recipe Form -->
-    <form action="/suggest-recipe" method="post" id="recipe-form">
-        <input type="text" name="ingredients" placeholder="What ingredients do you have?" required>
-        <button type="submit">Suggest Recipes</button>
-    </form>
 
     <!-- Response Container -->
     <div id="response"></div>
@@ -170,11 +272,15 @@
             document.getElementById('loading-spinner').style.display = 'none';
         }
 
-        // Event listener for the "Initialize Model" button
-        document.getElementById('initialize-model-btn').addEventListener('click', function() {
+        // Function to handle model training requests
+        function handleModelTraining(modelType) {
             showLoading();
-            fetch('/initialize_model', {
-                method: 'POST'
+            fetch('/train_model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ model_type: modelType })
             })
             .then(response => response.json())
             .then(data => {
@@ -184,9 +290,15 @@
             .catch(error => {
                 hideLoading();
                 console.error('Error:', error);
-                document.getElementById('response').innerText = 'Error initializing model.';
+                document.getElementById('response').innerText = 'Error during model training.';
             });
-        });
+        }
+
+        // Event listeners for model training buttons
+        document.getElementById('lda-model-btn').addEventListener('click', () => handleModelTraining('lda'));
+        document.getElementById('nmf-model-btn').addEventListener('click', () => handleModelTraining('nmf'));
+        document.getElementById('ensemble-model-btn').addEventListener('click', () => handleModelTraining('ensemble'));
+        document.getElementById('bert-model-btn').addEventListener('click', () => handleModelTraining('bert'));
 
         // Event listener for form submission
         document.getElementById('recipe-form').addEventListener('submit', function(event) {
@@ -208,6 +320,12 @@
                 console.error('Error:', error);
                 document.getElementById('response').innerText = 'Error suggesting recipes.';
             });
+        });
+
+        // Event listener for the view preprocessed data button
+        document.getElementById('view-data-btn').addEventListener('click', () => {
+            document.getElementById('training-warning').style.display = 'block';
+            window.location.href = 'https://drive.google.com/uc?export=download&id=1Iyh4dgVXtvn-9C9k_mTO0S0uxIMH50cv';
         });
 
         // Format the recipes into HTML

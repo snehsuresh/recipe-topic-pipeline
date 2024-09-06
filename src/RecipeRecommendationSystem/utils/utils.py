@@ -1,55 +1,90 @@
-import os
+import boto3
 import joblib
 import pandas as pd
+from io import BytesIO
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+import os
+
+s3_client = boto3.client(
+    "s3",
+    region_name=os.getenv("AWS_REGION"),
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+)
+# Initialize S3 client
+s3_client = boto3.client("s3")
+BUCKET_NAME = "recipe-recommender-data"
 
 
 def save_model(model, model_name):
-    # Define the folder to save models
-    models_folder = "models"
-    os.makedirs(models_folder, exist_ok=True)  # Create the folder if it doesn't exist
+    model_bytes = BytesIO()
+    joblib.dump(model, model_bytes)
+    model_bytes.seek(0)
 
-    # Save the model
-    model_path = os.path.join(models_folder, f"{model_name}.joblib")
-    joblib.dump(model, model_path)
-    print(f"Model {model_name} saved to {model_path}")
+    try:
+        s3_client.upload_fileobj(
+            model_bytes, BUCKET_NAME, f"models/{model_name}.joblib"
+        )
+        print(f"Model {model_name} saved to S3 bucket {BUCKET_NAME} in 'models' folder")
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print(f"Credentials error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 def load_model(model_name):
-    # Define the folder where models are saved
-    models_folder = "models"
-    model_path = os.path.join(models_folder, f"{model_name}.joblib")
+    try:
+        # Download the model from S3 to a BytesIO object
+        model_bytes = BytesIO()
+        s3_client.download_fileobj(
+            BUCKET_NAME, f"models/{model_name}.joblib", model_bytes
+        )
+        model_bytes.seek(0)
 
-    # Check if the model file exists
-    if os.path.exists(model_path):
-        model = joblib.load(model_path)
-        print(f"Model {model_name} loaded from {model_path}")
+        # Load the model
+        model = joblib.load(model_bytes)
+        print(
+            f"Model {model_name} loaded from S3 bucket {BUCKET_NAME} in 'models' folder"
+        )
         return model
-    else:
-        print(f"Model {model_name} does not exist at {model_path}")
-        return None
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print(f"Credentials error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    return None
 
 
 def save_dataframe(df, filename):
-    # Define the folder to save the DataFrame
-    save_folder = "data/processed"
-    os.makedirs(save_folder, exist_ok=True)  # Create the folder if it doesn't exist
+    # Save the DataFrame to a CSV in a BytesIO object
+    csv_bytes = BytesIO()
+    df.to_csv(csv_bytes, index=False, encoding="utf-8")
+    csv_bytes.seek(0)
 
-    # Save the DataFrame as a CSV file
-    save_path = os.path.join(save_folder, filename)
-    df.to_csv(save_path, index=False, encoding="utf-8")
-    print(f"DataFrame saved to {save_path}")
+    # Upload to S3
+    try:
+        s3_client.upload_fileobj(csv_bytes, BUCKET_NAME, f"data/processed/{filename}")
+        print(f"DataFrame saved to S3 bucket {BUCKET_NAME} in 'data/processed' folder")
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print(f"Credentials error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 def load_dataframe(filename):
-    # Define the folder where the DataFrame was saved
-    save_folder = "data/processed"
-    save_path = os.path.join(save_folder, filename)
+    try:
+        # Download the CSV from S3 to a BytesIO object
+        csv_bytes = BytesIO()
+        s3_client.download_fileobj(BUCKET_NAME, f"data/processed/{filename}", csv_bytes)
+        csv_bytes.seek(0)
 
-    # Check if the file exists before loading
-    if os.path.exists(save_path):
-        df = pd.read_csv(save_path, encoding="utf-8")
-        print(f"DataFrame loaded from {save_path}")
+        # Load the DataFrame
+        df = pd.read_csv(csv_bytes, encoding="utf-8")
+        print(
+            f"DataFrame loaded from S3 bucket {BUCKET_NAME} in 'data/processed' folder"
+        )
         return df
-    else:
-        print(f"File {filename} does not exist in {save_folder}")
-        return None
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        print(f"Credentials error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    return None
