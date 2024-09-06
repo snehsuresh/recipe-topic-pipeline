@@ -1,5 +1,3 @@
-import mlflow
-import mlflow.sklearn
 from sklearn.decomposition import LatentDirichletAllocation, NMF
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
