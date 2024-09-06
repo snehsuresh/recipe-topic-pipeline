@@ -5,7 +5,6 @@ selenium
 boto3
 numpy
 scikit-learn
-tensorflow
 bertopic
 nltk
 gunicorn
