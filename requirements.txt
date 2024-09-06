@@ -3,3 +3,8 @@ beautifulsoup4
 pandas
 selenium
 boto3
+numpy
+scikit-learn
+tensorflow
+bertopic
+nltk
