@@ -9,3 +9,4 @@ tensorflow
 bertopic
 nltk
 gunicorn
+flask
