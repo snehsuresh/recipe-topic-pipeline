@@ -107,6 +107,9 @@
             margin-bottom: 20px;
         }
 
+        option:disabled {
+    color: #888888; /* Grey color for placeholder text */
+}
         select {
             width: 100%;
             padding: 5px;
@@ -153,6 +156,10 @@
             max-width: 1200px;
         }
 
+        #response p {
+            max-width: 120px;
+        }
+
         /* Recipe card styling */
         .recipe {
             background-color: #2e2e2e;
@@ -183,7 +190,25 @@
             font-size: 0.9rem;
             line-height: 1.5;
             color: #e0e0e0;
-            overflow: auto;
+            overflow: hidden;
+            max-height: 3em;
+            position: relative;
+            text-overflow: ellipsis;
+        }
+
+        .recipe-directions.expanded {
+            max-height: none;
+        }
+
+        .read-more {
+            color: #00d1b2;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            align-self: flex-start;
+            border: none;
+            background: none;
+            padding: 0;
         }
 
         /* Loading spinner styling */
@@ -241,7 +266,7 @@
                 <input type="text" name="ingredients" placeholder="What ingredients do you have?" required>
 
                 <div class="select-wrapper">
-                    <select name="model" required>
+                    <select name="model" required >
                         <option value="" disabled selected>Test pre-trained model</option>
                         <option value="lda">LDA</option>
                         <option value="nmf">NMF</option>
@@ -336,12 +361,34 @@
                     recipesHTML += `
                         <div class="recipe">
                             <div class="recipe-title">${recipe.title}</div>
-                            <div class="recipe-directions">${recipe.directions}</div>
+                            <div class="recipe-directions">${getRecipeDirections(recipe.directions)}</div>
+                            <button class="read-more" onclick="toggleDirections(this)">Read More</button>
                         </div>
                     `;
                 });
             }
             return recipesHTML;
+        }
+
+        // Function to format directions and limit to 50 words
+        function getRecipeDirections(directions) {
+            const words = directions.split(' ');
+            if (words.length > 50) {
+                return words.slice(0, 50).join(' ') + '...';
+            }
+            return directions;
+        }
+
+        // Function to toggle full recipe directions
+        function toggleDirections(button) {
+            const recipeDirections = button.previousElementSibling;
+            if (recipeDirections.classList.contains('expanded')) {
+                recipeDirections.classList.remove('expanded');
+                button.textContent = 'Read More';
+            } else {
+                recipeDirections.classList.add('expanded');
+                button.textContent = 'Read Less';
+            }
         }
     </script>
 </body>
